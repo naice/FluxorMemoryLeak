@@ -1,0 +1,50 @@
+﻿@page "/counter"
+@using Fluxor
+
+@inherits ImportantComponentBase
+
+<PageTitle>Counter</PageTitle>
+
+<h1>Counter</h1>
+
+<p role="status">Current count: @currentCount</p>
+<p role="status">Current count: @AssetState.Value.State</p>
+
+<button class="btn btn-primary" @onclick="IncrementCount"> UPDATE COUNT </button>
+
+
+@code {
+    [Inject]
+    private IDispatcher Dispatcher { get; set; } = default!;
+    [Inject]
+    private IState<AssetState> AssetState { get; set; } = default!;
+    [Inject]
+    private IStateSelection<AssetState, int> StateSelection { get; set; } = default!;
+
+    private int currentCount = 0;
+
+    protected override void OnInitialized()
+    {
+        StateSelection.Select(state => state.State, null, SelectedStateChanged);
+        currentCount = StateSelection.Value;
+
+        base.OnInitialized();
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        Console.WriteLine("Disposing");
+        base.Dispose(disposing);
+    }
+
+    private void SelectedStateChanged(int state)
+    {
+        currentCount = state;
+        Console.WriteLine($"SelectedStateChanged called on {this.GetHashCode()}");
+    }
+
+    private void IncrementCount()
+    {
+        Dispatcher.Dispatch(new UpdateAssetState(4711));
+    }
+}
